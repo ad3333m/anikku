@@ -61,8 +61,8 @@ body.scrolled #topbar, body:not([data-route="home"]):not([data-route="anime"]) #
   background: rgba(10, 10, 14, .72); backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px);
   box-shadow: 0 1px 0 var(--line);
 }
-.back-btn { display: none; margin-left: -8px; background: rgba(255, 255, 255, .08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-body:not([data-route="home"]) .back-btn { display: grid; }
+#topbar .back-btn { display: none; margin-left: -8px; background: rgba(255, 255, 255, .08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+body:not([data-route="home"]) #topbar .back-btn { display: grid; }
 body:not([data-route="home"]) #topbar { gap: 14px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 800 23px/1 var(--display); letter-spacing: -.02em; }
 .brand-mark { width: 32px; height: 32px; filter: drop-shadow(0 4px 14px rgba(255, 122, 26, .45)); transition: transform .4s; }
