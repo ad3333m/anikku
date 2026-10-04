@@ -11,7 +11,45 @@
   let info = { title: '', subtitle: '', startAt: 0, hasNext: false, hasPrev: false, autoskip: false };
   let marks = { intro: null, outro: null };
   const post = (type, extra = {}) => { try { parent.postMessage({ anikku: type, ...extra }, '*'); } catch (e) { /* detached */ } };
-  try { window.open = () => null; } catch (e) { /* ignore */ }
+  // strict mode: the player page can never open a tab or window, follow a link off the player, or run a
+  // script that isn't the player's own. Its ads (Monetag "iclick" pop-unders injected by an inline loader)
+  // hop between domains, so scripts go through an allowlist rather than a block list.
+  const noWindow = () => null;
+  try { Object.defineProperty(window, 'open', { value: noWindow, writable: false, configurable: false }); } catch (e) { window.open = noWindow; }
+  const SCRIPT_HOSTS = /(^|\.)(megaplay(-\d+)?\.buzz|cdn\.jsdelivr\.net|code\.jquery\.com|cdnjs\.cloudflare\.com|jwpcdn\.com|jwplayer\.com)$/;
+  const scriptAllowed = src => {
+    try { return SCRIPT_HOSTS.test(new URL(src, location.href).hostname); } catch (e) { return false; }
+  };
+  const srcProp = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+  Object.defineProperty(HTMLScriptElement.prototype, 'src', {
+    configurable: true, enumerable: srcProp.enumerable, get: srcProp.get,
+    set(v) { if (scriptAllowed(v)) srcProp.set.call(this, v); else this.type = 'javascript/blocked'; },
+  });
+  const setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+    if (this instanceof HTMLScriptElement && String(name).toLowerCase() === 'src' && !scriptAllowed(value)) {
+      this.type = 'javascript/blocked';
+      return;
+    }
+    return setAttr.call(this, name, value);
+  };
+  // scripts written into the page's HTML: the parser hands them over before running them
+  new MutationObserver(list => list.forEach(m => m.addedNodes.forEach(n => {
+    if (n.tagName === 'SCRIPT' && n.src && !scriptAllowed(n.src)) { n.type = 'javascript/blocked'; n.remove(); }
+  }))).observe(document, { childList: true, subtree: true });
+  const offPlayer = a => {
+    if (!a || !a.href) return false;
+    const u = new URL(a.href, location.href);
+    return /^https?:$/.test(u.protocol) && ((a.target && a.target !== '_self') || u.host !== location.host);
+  };
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a');
+    if (offPlayer(a)) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  const aClick = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function () { if (!offPlayer(this)) aClick.call(this); };
+  const submit = HTMLFormElement.prototype.submit;
+  HTMLFormElement.prototype.submit = function () { if (!this.target || this.target === '_self') submit.call(this); };
 
   // intro/outro times arrive with the player's source request
   const setMarks = (intro, outro) => {

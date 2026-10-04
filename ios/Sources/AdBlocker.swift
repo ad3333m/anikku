@@ -12,6 +12,8 @@ enum AdBlocker {
         "galaksion.com", "adcash.com", "admaven.com", "ad-maven.com", "realsrv.com", "rtmark.net", "tsyndicate.com",
         "bidgear.com", "pubfuture.com", "vdo.ai", "aclib.net", "acscdn.com", "stopadsnow", "dtscout.com", "dtscdn.com",
         "histats.com", "whos.amung.us", "disqusads.com", "s.pubmine.com", "adskeeper.com", "mgid.com", "lijit.com",
+        // MegaPlay's Monetag "iclick" pop-unders and its trackers
+        "nekostream.site", "llvpn.com", "luugy.com", "plausible.io", "jwpltx.com",
     ]
 
     static func install(into controller: WKUserContentController, then done: @escaping () -> Void) {
@@ -24,7 +26,7 @@ enum AdBlocker {
         }
         guard let data = try? JSONSerialization.data(withJSONObject: rules),
               let json = String(data: data, encoding: .utf8) else { return done() }
-        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "anikku-adblock-v1", encodedContentRuleList: json) { list, _ in
+        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: "anikku-adblock-v2", encodedContentRuleList: json) { list, _ in
             DispatchQueue.main.async {
                 if let list { controller.add(list) }
                 done()

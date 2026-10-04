@@ -55,7 +55,8 @@ listeners.push(async m => {
     frameSessions.push(sessionId);
     await send('Page.enable', {}, sessionId);
     if (skin) await send('Page.addScriptToEvaluateOnNewDocument', { source: skin }, sessionId);
-    await send('Runtime.enable', {}, sessionId);
+    // console capture is opt-in: MegaPlay's anti-devtools check notices it and blanks the frame
+    if (process.env.CDP_CONSOLE) await send('Runtime.enable', {}, sessionId);
   }
   await send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: true, flatten: true }, sessionId);
   await send('Runtime.runIfWaitingForDebugger', {}, sessionId);
