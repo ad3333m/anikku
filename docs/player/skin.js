@@ -28,6 +28,28 @@
     return xsend.apply(this, arguments);
   };
 
+  // ads: anything the page injects outside the video player (frames, click-catching overlays) is removed
+  let playerBox = null;  // set once JW Player is running; until then only obvious ad elements go
+  const isPlayerPart = el => !!(el.closest && (el.closest('.jwplayer') || el.closest('#anikku-skin')))
+    || (playerBox && el.contains(playerBox)) || (el.hasAttribute && (el.hasAttribute('data-id') || el.hasAttribute('data-realid')));
+  const sweep = el => {
+    if (!(el instanceof Element) || isPlayerPart(el) || el.id === 'anikku-skin') return;
+    const tag = el.tagName;
+    if (tag === 'IFRAME' || tag === 'OBJECT' || tag === 'EMBED') { el.remove(); return; }
+    if (el.matches && el.matches('.afs_ads, .ad-placement, [class*="ads-"], [id*="ads-"], [class*="popunder"], [id*="popunder"]')) { el.remove(); return; }
+    if (playerBox && (tag === 'DIV' || tag === 'A' || tag === 'SECTION' || tag === 'ASIDE')) {
+      const cs = getComputedStyle(el);
+      const big = el.offsetWidth > innerWidth * 0.5 && el.offsetHeight > innerHeight * 0.5;
+      if ((cs.position === 'fixed' || cs.position === 'absolute') && big && !el.querySelector('.jwplayer, video')) el.remove();
+    }
+  };
+  new MutationObserver(list => {
+    for (const m of list) m.addedNodes.forEach(n => { sweep(n); if (n.querySelectorAll) n.querySelectorAll('iframe, .afs_ads, .ad-placement').forEach(sweep); });
+  }).observe(document, { childList: true, subtree: true });
+  const sweepAll = () => document.querySelectorAll('body > *, iframe, .afs_ads, .ad-placement').forEach(sweep);
+  document.addEventListener('DOMContentLoaded', sweepAll);
+  setInterval(sweepAll, 2000);
+
   window.addEventListener('message', ev => {
     const d = ev.data;
     if (!d || d.anikku !== 'init') return;
@@ -47,6 +69,7 @@
       const jw = window.jwplayer && window.jwplayer();
       if (!jw || !jw.getState || !jw.getContainer || !jw.getContainer()) return;
       clearInterval(tick);
+      playerBox = jw.getContainer();
       ui = buildUI(jw);
       post('ready');
     }, 150);

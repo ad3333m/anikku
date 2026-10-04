@@ -53,6 +53,13 @@ function onScroll() {
   document.body.classList.toggle('scrolled', window.scrollY > 24);
 }
 
+// in-app back: return to the previous screen, or Home when this was the first one
+let depth = 0;
+window.addEventListener('hashchange', () => { depth++; });
+document.getElementById('back').addEventListener('click', () => {
+  if (depth > 0) { depth -= 2; history.back(); } else location.hash = '#/';
+});
+
 window.addEventListener('hashchange', route);
 window.addEventListener('scroll', onScroll, { passive: true });
 document.addEventListener('keydown', e => {

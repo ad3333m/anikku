@@ -6,8 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 MODE="${1:-device}"
 command -v xcodegen >/dev/null || brew install xcodegen
-mkdir -p Web
-cp ../docs/player/skin.js Web/skin.js
+# the whole site (docs/) goes into the app as one page, plus the player skin
+python3 bundle_web.py Web
 xcodegen generate --quiet
 
 if [ "$MODE" = simulator ]; then

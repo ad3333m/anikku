@@ -3,7 +3,7 @@ name: iOS app
 on:
   push:
     branches: [main]
-    paths: ["ios/**", "docs/player/skin.js", ".github/workflows/ios.yml"]
+    paths: ["ios/**", "docs/**", ".github/workflows/ios.yml"]
   workflow_dispatch:
 
 jobs:
