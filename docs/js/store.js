@@ -1,5 +1,7 @@
 // Everything the user owns lives in localStorage on this device: My List, watch history, settings.
 
+import { safe } from './safety.js';
+
 const K = { list: 'anikku.list', history: 'anikku.history', settings: 'anikku.settings', searches: 'anikku.searches' };
 
 function read(key, fallback) {
@@ -15,7 +17,8 @@ export function snapshot(m) {
   return {
     id: m.id, idMal: m.idMal, format: m.format, episodes: m.episodes, status: m.status,
     title: m.title, coverImage: m.coverImage, bannerImage: m.bannerImage, averageScore: m.averageScore,
-    seasonYear: m.seasonYear, genres: (m.genres || []).slice(0, 3), nextAiringEpisode: m.nextAiringEpisode || null,
+    seasonYear: m.seasonYear, genres: m.genres || [], nextAiringEpisode: m.nextAiringEpisode || null,
+    isAdult: !!m.isAdult, blocked: !safe(m),
   };
 }
 
@@ -41,7 +44,7 @@ export function setSetting(key, value) {
 
 // ---------------------------------------------------------------- My List
 
-export function myList() { return read(K.list, []); }
+export function myList() { return read(K.list, []).filter(safe); }
 export function inList(id) { return myList().some(x => x.id === id); }
 export function toggleList(m) {
   const list = myList();
@@ -58,7 +61,7 @@ export function toggleList(m) {
 export function history() { return read(K.history, {}); }
 
 export function continueWatching() {
-  return Object.values(history()).filter(h => !h.hidden).sort((a, b) => b.updatedAt - a.updatedAt);
+  return Object.values(history()).filter(h => !h.hidden && safe(h.media)).sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export function animeHistory(id) { return history()[id] || null; }

@@ -1,6 +1,8 @@
 // Data layer: AniList (catalogue, search, schedule) and ani.zip (artwork, episode titles/stills).
 // Both allow cross-origin requests, so the site talks to them directly.
 
+import { SAFE_ARGS, safe } from './safety.js';
+
 const ANILIST = 'https://graphql.anilist.co';
 const ANIZIP = 'https://api.ani.zip/mappings?anilist_id=';
 
@@ -25,8 +27,8 @@ fragment full on Media {
   studios(isMain: true) { nodes { name } }
   trailer { id site }
   tags { name rank isMediaSpoiler }
-  relations { edges { relationType(version: 2) node { ...card type } } }
-  recommendations(perPage: 18, sort: RATING_DESC) { nodes { mediaRecommendation { ...card } } }
+  relations { edges { relationType(version: 2) node { ...card type tags { name rank } } } }
+  recommendations(perPage: 18, sort: RATING_DESC) { nodes { mediaRecommendation { ...card tags { name rank } } } }
 }`;
 
 const memo = new Map();
@@ -75,7 +77,8 @@ export function currentSeason(offset = 0) {
   return { season: seasons[idx], year };
 }
 
-const SAFE = 'isAdult: false, type: ANIME';
+// every catalogue query leaves out adult/sexual titles (see safety.js)
+const SAFE = `type: ANIME, ${SAFE_ARGS}`;
 
 export async function homeRows() {
   const { season, year } = currentSeason();
@@ -115,7 +118,7 @@ export async function recentEpisodes() {
   query ($from: Int, $to: Int) {
     Page(perPage: 50) {
       airingSchedules(airingAt_greater: $from, airingAt_lesser: $to, sort: TIME_DESC) {
-        episode airingAt media { ...card }
+        episode airingAt media { ...card tags { name rank } }
       }
     }
   }`;
@@ -123,7 +126,7 @@ export async function recentEpisodes() {
   const seen = new Set();
   const out = [];
   for (const s of d.Page.airingSchedules) {
-    if (!s.media || s.media.isAdult || seen.has(s.media.id)) continue;
+    if (!safe(s.media) || seen.has(s.media.id)) continue;
     seen.add(s.media.id);
     out.push({ ...s.media, _airedEpisode: s.episode, _airedAt: s.airingAt });
   }
@@ -135,7 +138,7 @@ export async function schedule(dayStart) {
   query ($from: Int, $to: Int, $page: Int) {
     Page(page: $page, perPage: 50) {
       pageInfo { hasNextPage }
-      airingSchedules(airingAt_greater: $from, airingAt_lesser: $to, sort: TIME) { episode airingAt media { ...card } }
+      airingSchedules(airingAt_greater: $from, airingAt_lesser: $to, sort: TIME) { episode airingAt media { ...card tags { name rank } } }
     }
   }`;
   const from = Math.floor(dayStart / 1000), to = from + 86400;
@@ -146,13 +149,20 @@ export async function schedule(dayStart) {
     if (!d.Page.pageInfo.hasNextPage) break;
     page++;
   }
-  return all.filter(s => s.media && !s.media.isAdult);
+  return all.filter(s => safe(s.media));
 }
 
 export async function media(id) {
   const q = `${CARD} ${FULL} query ($id: Int) { Media(id: $id, type: ANIME) { ...full } }`;
   const d = await gql(q, { id: Number(id) }, { cacheKey: 'media:' + id, ttl: 30 * 60 * 1000 });
-  return d.Media;
+  const m = d.Media;
+  if (m) {
+    // a title opened directly is checked too, and its related/recommended lists are filtered
+    m.blocked = !safe(m);
+    if (m.relations) m.relations.edges = (m.relations.edges || []).filter(e => safe(e.node));
+    if (m.recommendations) m.recommendations.nodes = (m.recommendations.nodes || []).filter(n => safe(n.mediaRecommendation));
+  }
+  return m;
 }
 
 export async function search(text, page = 1) {

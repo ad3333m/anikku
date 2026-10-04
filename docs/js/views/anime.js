@@ -16,6 +16,7 @@ export async function render(view, token, id) {
   }
   if (!token.current) return;
   if (!m) { view.innerHTML = errorBox('This show was not found', false); return; }
+  if (m.blocked) { view.innerHTML = errorBox("This title isn't available in Anikku", false); return; }
 
   const ex = await api.extras(m.id);
   if (!token.current) return;

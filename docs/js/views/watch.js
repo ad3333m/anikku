@@ -18,6 +18,7 @@ export async function render(view, token, id, epStr) {
     return;
   }
   if (!token.current) return;
+  if (!m || m.blocked) { view.innerHTML = errorBox("This title isn't available in Anikku", false); return; }
 
   const total = api.availableEpisodes(m, ex) || ep;
   const e = ex?.episodes?.[ep] || {};
