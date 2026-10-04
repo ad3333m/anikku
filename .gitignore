@@ -7,3 +7,4 @@ ios/build/
 ios/Generated/
 ios/*.xcodeproj/
 sim-shots/
+*.ipa
