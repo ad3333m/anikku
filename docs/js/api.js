@@ -13,6 +13,7 @@ fragment card on Media {
   coverImage { extraLarge large color }
   bannerImage
   genres
+  tags { name rank }
   nextAiringEpisode { episode airingAt timeUntilAiring }
 }`;
 
@@ -99,8 +100,8 @@ export async function homeRows() {
     gql(q2, {}, { cacheKey: 'home2' }),
   ]);
   return {
-    trending: a.trending.media, season: a.season.media, top: a.top.media,
-    popular: b.popular.media, upcoming: b.upcoming.media, movies: b.movies.media,
+    trending: a.trending.media.filter(safe), season: a.season.media.filter(safe), top: a.top.media.filter(safe),
+    popular: b.popular.media.filter(safe), upcoming: b.upcoming.media.filter(safe), movies: b.movies.media.filter(safe),
     seasonLabel: `${season[0]}${season.slice(1).toLowerCase()} ${year}`,
   };
 }
@@ -108,7 +109,7 @@ export async function homeRows() {
 export async function genreRow(genre) {
   const q = `${CARD} query ($g: String) { Page(perPage: 24) { media(${SAFE}, genre: $g, sort: TRENDING_DESC) { ...card } } }`;
   const d = await gql(q, { g: genre }, { cacheKey: 'genre:' + genre });
-  return d.Page.media;
+  return d.Page.media.filter(safe);
 }
 
 /** Episodes that aired in the last few days (newest first), one entry per show. */
@@ -171,7 +172,7 @@ export async function search(text, page = 1) {
     Page(page: $page, perPage: 30) { pageInfo { hasNextPage } media(${SAFE}, search: $q, sort: SEARCH_MATCH) { ...card } }
   }`;
   const d = await gql(q, { q: text, page }, { cacheKey: `search:${text}:${page}` });
-  return d.Page;
+  return { ...d.Page, media: d.Page.media.filter(safe) };
 }
 
 export async function browse({ genre, sort = 'TRENDING_DESC', format, status, year, season, page = 1 }) {
@@ -185,7 +186,7 @@ export async function browse({ genre, sort = 'TRENDING_DESC', format, status, ye
   if (season) { args.push('season: $season'); defs.push('$season: MediaSeason'); vars.season = season; }
   const q = `${CARD} query (${defs.join(', ')}) { Page(page: $page, perPage: 30) { pageInfo { hasNextPage } media(${args.join(', ')}) { ...card } } }`;
   const d = await gql(q, vars, { cacheKey: 'browse:' + JSON.stringify(vars) + sort });
-  return d.Page;
+  return { ...d.Page, media: d.Page.media.filter(safe) };
 }
 
 export const GENRES = ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mahou Shoujo', 'Mecha', 'Music',
