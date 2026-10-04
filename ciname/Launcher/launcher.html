@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="color-scheme" content="dark">
+  <title>Ciname</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060608;
+      --ink: #f4f4f6;
+      --muted: rgba(244, 244, 246, .58);
+      --lime: #95ff50;
+      --orange: #ff7a1a;
+      --display: 'Outfit', ui-rounded, -apple-system, system-ui, sans-serif;
+      --text: -apple-system, system-ui, 'Segoe UI', sans-serif;
+      --pad-t: max(18px, env(safe-area-inset-top));
+      --pad-b: max(16px, env(safe-area-inset-bottom));
+      --pad-l: max(20px, env(safe-area-inset-left));
+      --pad-r: max(20px, env(safe-area-inset-right));
+    }
+    * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
+    body {
+      font-family: var(--text);
+      display: flex; flex-direction: column;
+      padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l);
+      -webkit-user-select: none; user-select: none;
+    }
+
+    /* drifting lime and orange light behind everything */
+    .aurora { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+    .aurora i { position: absolute; width: 90vmax; height: 90vmax; border-radius: 50%; filter: blur(60px); opacity: .55; }
+    .aurora .a1 { background: radial-gradient(circle, rgba(149, 255, 80, .35), transparent 62%); left: -45vmax; top: -40vmax; animation: drift1 18s ease-in-out infinite alternate; }
+    .aurora .a2 { background: radial-gradient(circle, rgba(255, 122, 26, .38), transparent 62%); right: -45vmax; bottom: -45vmax; animation: drift2 22s ease-in-out infinite alternate; }
+    @keyframes drift1 { to { transform: translate(14vmax, 10vmax) scale(1.08); } }
+    @keyframes drift2 { to { transform: translate(-12vmax, -14vmax) scale(1.1); } }
+
+    header { position: relative; padding: 10px 4px 22px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { width: 40px; height: 40px; filter: drop-shadow(0 4px 14px rgba(255, 150, 40, .35)); }
+    .brand span {
+      font: 900 30px/1 var(--display); letter-spacing: -.02em;
+      background: linear-gradient(100deg, var(--lime), #ffd640 45%, var(--orange));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .greet { margin-top: 22px; font: 600 13px/1 var(--text); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    h1 { margin-top: 8px; font: 800 clamp(28px, 7.4vw, 44px)/1.05 var(--display); letter-spacing: -.02em; }
+
+    .cards { position: relative; flex: 1; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+    .card {
+      --accent: var(--orange);
+      position: relative; flex: 1; min-height: 150px; width: 100%;
+      border: 0; padding: 0; border-radius: 30px; overflow: hidden; cursor: pointer;
+      background: #0d0d10; color: inherit; text-align: left; font: inherit;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .08) inset, 0 24px 60px -24px var(--glow, rgba(0, 0, 0, .8));
+      transform: translateY(26px); opacity: 0;
+      animation: rise .7s cubic-bezier(.2, .9, .25, 1) forwards;
+      transition: transform .35s cubic-bezier(.2, .9, .25, 1), opacity .3s, filter .3s;
+    }
+    .card.cinejoy { --accent: var(--lime); animation-delay: .1s; }
+    .card.anikku { --glow: rgba(255, 110, 20, .45); }
+    .card.cinejoy { --glow: rgba(130, 255, 70, .32); }
+    @keyframes rise { to { transform: none; opacity: 1; } }
+    .card.press { transform: scale(.975); }
+    .card.go { transform: scale(1.03); filter: brightness(1.15); }
+    .cards.leaving .card:not(.go) { opacity: 0; transform: scale(.94); }
+
+    /* tilted poster wall that slowly slides past */
+    .wall { position: absolute; inset: -30% -20%; transform: rotate(-11deg); display: flex; flex-direction: column; gap: 12px; justify-content: center; opacity: 0; transition: opacity .8s; }
+    .wall.on { opacity: .9; }
+    .wall .row { display: flex; gap: 12px; width: max-content; animation: slide 60s linear infinite; }
+    .wall .row:nth-child(2) { animation-duration: 75s; animation-direction: reverse; }
+    .wall img { height: clamp(120px, 22vh, 220px); aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; background: #1a1a1f; }
+    @keyframes slide { to { transform: translateX(-50%); } }
+
+    .shade { position: absolute; inset: 0; background:
+      linear-gradient(180deg, rgba(6, 6, 8, .15) 0%, rgba(6, 6, 8, .55) 45%, rgba(6, 6, 8, .96) 100%),
+      radial-gradient(120% 80% at 0% 100%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%); }
+    .mark { position: absolute; right: -6%; top: -14%; width: 62%; max-width: 360px; opacity: .1; filter: blur(1px) saturate(1.4); transform: rotate(12deg); }
+
+    .body { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 16px; padding: 22px; }
+    .icon { width: 64px; height: 64px; border-radius: 16px; flex: none; box-shadow: 0 10px 30px -8px var(--accent), 0 0 0 1px rgba(255, 255, 255, .12); }
+    .text { flex: 1; min-width: 0; }
+    .text h2 { font: 800 clamp(24px, 6.4vw, 34px)/1.05 var(--display); letter-spacing: -.015em; }
+    .text p { margin-top: 6px; font-size: 15px; color: var(--muted); }
+    .tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .tags b { font: 600 11.5px/1 var(--text); letter-spacing: .02em; padding: 6px 9px; border-radius: 99px; background: rgba(255, 255, 255, .09); color: rgba(255, 255, 255, .82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .go-btn { width: 48px; height: 48px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #0b0b0b; box-shadow: 0 8px 26px -6px var(--accent); transition: transform .3s; }
+    .card:hover .go-btn, .card.go .go-btn { transform: translateX(4px); }
+
+    footer { position: relative; padding-top: 14px; text-align: center; font-size: 12.5px; color: rgba(244, 244, 246, .4); }
+
+    /* landscape phones and iPads: the two side by side */
+    @media (min-aspect-ratio: 1/1) and (min-width: 640px), (min-width: 900px) and (min-aspect-ratio: 4/5) {
+      .cards { flex-direction: row; }
+      .card.cinejoy { animation-delay: .12s; }
+      .wall img { height: clamp(140px, 26vh, 260px); }
+    }
+    @media (max-height: 520px) {
+      header { padding: 0 4px 12px; display: flex; align-items: baseline; gap: 18px; }
+      .greet { display: none; }
+      h1 { margin: 0; font-size: 24px; }
+      .card { min-height: 0; }
+      .icon { width: 52px; height: 52px; }
+      .tags { display: none; }
+      footer { padding-top: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .aurora i, .wall .row { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="aurora"><i class="a1"></i><i class="a2"></i></div>
+
+  <header>
+    <div class="brand"><img src="ciname.png" alt=""><span>Ciname</span></div>
+    <p class="greet" id="greet">Welcome back</p>
+    <h1>What are we watching?</h1>
+  </header>
+
+  <main class="cards" id="cards">
+    <button class="card anikku" data-open="anikku" aria-label="Open AnikkuNX">
+      <div class="wall" id="wall-anikku"></div>
+      <img class="mark" src="anikku.png" alt="">
+      <div class="shade"></div>
+      <div class="body">
+        <img class="icon" src="anikku.png" alt="">
+        <div class="text">
+          <h2>AnikkuNX</h2>
+          <p>Anime, sub and dub</p>
+          <div class="tags"><b>Trending</b><b>Simulcasts</b><b>No ads</b></div>
+        </div>
+        <span class="go-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </div>
+    </button>
+
+    <button class="card cinejoy" data-open="cinejoy" aria-label="Open Cinejoy">
+      <div class="wall" id="wall-cinejoy"></div>
+      <img class="mark" src="cinejoy.png" alt="">
+      <div class="shade"></div>
+      <div class="body">
+        <img class="icon" src="cinejoy.png" alt="">
+        <div class="text">
+          <h2>Cinejoy</h2>
+          <p>Movies and TV shows</p>
+          <div class="tags"><b>Movies</b><b>TV shows</b><b>Pop-ups blocked</b></div>
+        </div>
+        <span class="go-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </div>
+    </button>
+  </main>
+
+  <footer>Swipe in from the left edge to come back here</footer>
+
+  <script>
+    (() => {
+      const h = new Date().getHours();
+      document.getElementById('greet').textContent =
+        h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+
+      // poster walls: trending anime from AniList, top movies from the iTunes chart
+      const wall = (id, urls) => {
+        const el = document.getElementById(id);
+        if (!urls.length) return;
+        const half = Math.ceil(urls.length / 2);
+        const rows = [urls.slice(0, half), urls.slice(half).concat(urls.slice(0, 2))];
+        el.innerHTML = rows.map(r => '<div class="row">' + r.concat(r).map(u => '<img alt="" src="' + u + '">').join('') + '</div>').join('');
+        let loaded = 0;
+        el.querySelectorAll('img').forEach(img => {
+          img.onload = () => { if (++loaded >= 8) el.classList.add('on'); };
+          img.onerror = () => img.remove();
+        });
+      };
+      const cached = (key, load) => {
+        try {
+          const c = JSON.parse(localStorage.getItem(key) || 'null');
+          if (c && Date.now() - c.t < 6 * 3600e3) return Promise.resolve(c.v);
+        } catch (e) { /* storage off */ }
+        return load().then(v => { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v })); } catch (e) {} return v; });
+      };
+      cached('ciname.anime', () => fetch('https://graphql.anilist.co', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ query: '{Page(perPage:16){media(sort:TRENDING_DESC,type:ANIME,isAdult:false){coverImage{extraLarge}}}}' }),
+      }).then(r => r.json()).then(d => d.data.Page.media.map(m => m.coverImage.extraLarge)))
+        .then(u => wall('wall-anikku', u)).catch(() => {});
+      cached('ciname.movies', () => fetch('https://itunes.apple.com/us/rss/topmovies/limit=16/json')
+        .then(r => r.json()).then(d => d.feed.entry.map(e => e['im:image'].slice(-1)[0].label.replace(/\/[^/]+$/, '/400x600bb.jpg'))))
+        .then(u => wall('wall-cinejoy', u)).catch(() => {});
+
+      // opening an app: the card swells, the other one steps back, then the app takes over
+      const cards = document.getElementById('cards');
+      const send = app => {
+        const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ciname;
+        if (bridge) bridge.postMessage({ open: app }); else console.log('open', app);
+      };
+      let busy = false;
+      cards.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('pointerdown', () => card.classList.add('press'));
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => card.addEventListener(t, () => card.classList.remove('press')));
+        card.addEventListener('click', () => {
+          if (busy) return;
+          busy = true;
+          card.classList.add('go');
+          cards.classList.add('leaving');
+          setTimeout(() => send(card.dataset.open), 240);
+        });
+      });
+      // the app calls this when the picker is shown again
+      window.cinameReset = () => {
+        busy = false;
+        cards.classList.remove('leaving');
+        cards.querySelectorAll('.card').forEach(c => c.classList.remove('go', 'press'));
+      };
+    })();
+  </script>
+</body>
+</html>

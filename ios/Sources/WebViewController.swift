@@ -14,6 +14,10 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
 
     private var webView: WKWebView!
 
+    /// Set by Ciname before the view loads: the page's back button on Home leaves Anikku through this.
+    var onExit: (() -> Void)?
+    var canGoBack: Bool { webView?.canGoBack ?? false }
+
     override var prefersHomeIndicatorAutoHidden: Bool { true }
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     override var prefersStatusBarHidden: Bool { view.bounds.width > view.bounds.height }
@@ -38,6 +42,9 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         scripts.addUserScript(WKUserScript(source: "try{window.open=function(){return null}}catch(e){}",
                                            injectionTime: .atDocumentStart, forMainFrameOnly: false))
         scripts.addUserScript(WKUserScript(source: Self.skinSource(), injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        if onExit != nil {
+            scripts.add(ExitHandler { [weak self] in self?.onExit?() }, name: "ciname")
+        }
         config.userContentController = scripts
 
         webView = WKWebView(frame: view.bounds, configuration: config)
@@ -58,6 +65,10 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         coordinator.animate(alongsideTransition: { _ in self.setNeedsStatusBarAppearanceUpdate() })
+    }
+
+    func pauseMedia() {
+        webView?.pauseAllMediaPlayback(completionHandler: nil)
     }
 
     private static let page: String = {
@@ -140,4 +151,11 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         alert.addAction(UIAlertAction(title: "OK", style: .destructive) { _ in completionHandler(true) })
         present(alert, animated: true)
     }
+}
+
+/// The page calls window.webkit.messageHandlers.ciname.postMessage(...) to leave Anikku inside Ciname.
+private final class ExitHandler: NSObject, WKScriptMessageHandler {
+    private let action: () -> Void
+    init(_ action: @escaping () -> Void) { self.action = action }
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) { action() }
 }

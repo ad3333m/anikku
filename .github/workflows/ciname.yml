@@ -1,0 +1,34 @@
+name: Ciname app
+
+on:
+  push:
+    branches: [main]
+    paths: ["ciname/**", "docs/**", "ios/Sources/**", "ios/bundle_web.py", ".github/workflows/ciname.yml"]
+  workflow_dispatch:
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Ciname.ipa
+        run: bash ciname/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ciname-ipa
+          path: dist/Ciname.ipa
+
+  simulator:
+    runs-on: macos-15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for the simulator
+        run: bash ciname/build.sh simulator
+      - name: Run on iPhone 17 Pro Max and 12.9" iPad Pro
+        run: bash ciname/simulator_test.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ciname-simulator-screenshots
+          path: sim-shots/

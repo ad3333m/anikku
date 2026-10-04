@@ -53,11 +53,15 @@ function onScroll() {
   document.body.classList.toggle('scrolled', window.scrollY > 24);
 }
 
-// in-app back: return to the previous screen, or Home when this was the first one
+// in-app back: return to the previous screen, or Home when this was the first one. Inside Ciname
+// (the combined Anikku + Cinejoy app) the button also shows on Home, where it goes back to the picker.
+const ciname = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ciname;
+if (ciname) document.documentElement.classList.add('in-ciname');
 let depth = 0;
 window.addEventListener('hashchange', () => { depth++; });
 document.getElementById('back').addEventListener('click', () => {
-  if (depth > 0) { depth -= 2; history.back(); } else location.hash = '#/';
+  if (ciname && document.body.dataset.route === 'home') ciname.postMessage('exit');
+  else if (depth > 0) { depth -= 2; history.back(); } else location.hash = '#/';
 });
 
 window.addEventListener('hashchange', route);
