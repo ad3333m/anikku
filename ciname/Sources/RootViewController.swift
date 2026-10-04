@@ -1,10 +1,10 @@
 import UIKit
 import WebKit
 
-/// Ciname opens on a picker (Launcher/launcher.html) with two apps: AnikkuNX, which is Anikku's bundled
-/// site in WebViewController, and Cinejoy, the cinejoy.pk shell. An app keeps running once it's open, so
-/// going back to the picker and in again lands where you left off. The way back out is Anikku's back
-/// button on its Home screen, or a swipe in from the left edge once there's no page left to go back to.
+/// Ciname opens on a picker (Launcher/launcher.html) with two apps: Anikku, the bundled site in
+/// WebViewController, and Cinejoy, the cinejoy.pk shell. An app keeps running once it's open, so going
+/// back to the picker and in again lands where you left off. The way back out is the back button on each
+/// app's Home screen, or a swipe in from the left edge once there's no page left to go back to.
 final class RootViewController: UIViewController {
     enum App: String { case anikku, cinejoy }
 

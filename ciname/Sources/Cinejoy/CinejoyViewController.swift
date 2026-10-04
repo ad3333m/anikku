@@ -9,6 +9,7 @@ final class CinejoyViewController: UIViewController {
     private enum Const {
         static let home = URL(string: "https://cinejoy.pk/")!
         static let mediaHandler = "media"
+        static let exitHandler = "ciname"
     }
 
     /// Set by Ciname: leaves Cinejoy for the picker.
@@ -44,6 +45,8 @@ final class CinejoyViewController: UIViewController {
     deinit {
         webView?.configuration.userContentController
             .removeScriptMessageHandler(forName: Const.mediaHandler)
+        webView?.configuration.userContentController
+            .removeScriptMessageHandler(forName: Const.exitHandler)
         UIApplication.shared.isIdleTimerDisabled = false
     }
 
@@ -86,6 +89,14 @@ final class CinejoyViewController: UIViewController {
         config.userContentController.addUserScript(Self.mediaWatcherScript())
         config.userContentController.add(WeakMessageHandler(self), name: Const.mediaHandler)
 
+        // Ciname's back button, placed in the site's own top bar (ciname/Injected/back-button.js)
+        if onExit != nil, let url = Bundle.main.url(forResource: "back-button", withExtension: "js"),
+           let js = try? String(contentsOf: url, encoding: .utf8) {
+            config.userContentController.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentEnd,
+                                                                    forMainFrameOnly: true))
+            config.userContentController.add(WeakMessageHandler(self), name: Const.exitHandler)
+        }
+
         webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -95,7 +106,7 @@ final class CinejoyViewController: UIViewController {
         webView.scrollView.indicatorStyle = .white
 
         // An edge swipe goes back a page; with no page left to go back to, Ciname
-        // takes the same swipe and returns to the picker.
+        // takes the same swipe and returns to the picker (as does the back button on Home).
         webView.allowsBackForwardNavigationGestures = true
         webView.allowsLinkPreview = true
 
@@ -407,6 +418,7 @@ extension CinejoyViewController: WKScriptMessageHandler {
 
     func userContentController(_ controller: WKUserContentController,
                                didReceive message: WKScriptMessage) {
+        if message.name == Const.exitHandler { onExit?(); return }
         guard message.name == Const.mediaHandler, let what = message.body as? String else { return }
 
         switch what {
