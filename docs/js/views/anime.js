@@ -51,7 +51,7 @@ export async function render(view, token, id) {
           ${m.trailer?.site === 'youtube' ? `<a class="btn glass" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${esc(m.trailer.id)}">${icon('tv', 18)} Trailer</a>` : ''}
         </div>
         <div class="series-lower">
-          <p class="series-desc" data-clamp>${esc(desc)}</p>
+          <div class="series-desc-wrap"><p class="series-desc" data-clamp>${esc(desc)}</p></div>
           <dl class="series-facts">
             ${studio ? `<dt>Studio</dt><dd>${esc(studio)}</dd>` : ''}
             ${aired ? `<dt>Aired</dt><dd>${esc(aired)}</dd>` : ''}
