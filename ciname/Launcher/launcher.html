@@ -173,7 +173,11 @@
       document.getElementById('greet').textContent =
         h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 
-      // poster walls: trending anime from AniList, top movies from the iTunes chart
+      // poster walls: Anikku's card shows a fixed, hand-picked set (Adam's picks), Cinejoy's the iTunes movie chart
+      const ANIKKU_WALL = [
+        190327, 151807, 127230, 21355, 20474, 176496, 171627, 108632,     // Steel Ball Run, Solo Leveling, Chainsaw Man, Re:Zero, JoJo
+        102883, 210482, 163134, 21450, 14719, 184694, 131942, 189046,
+      ];
       const wall = (id, urls) => {
         const el = document.getElementById(id);
         if (!urls.length) return;
@@ -193,10 +197,13 @@
         } catch (e) { /* storage off */ }
         return load().then(v => { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v })); } catch (e) {} return v; });
       };
-      cached('ciname.anime', () => fetch('https://graphql.anilist.co', {
+      cached('ciname.anime.picks1', () => fetch('https://graphql.anilist.co', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query: '{Page(perPage:16){media(sort:TRENDING_DESC,type:ANIME,isAdult:false){coverImage{extraLarge}}}}' }),
-      }).then(r => r.json()).then(d => d.data.Page.media.map(m => m.coverImage.extraLarge)))
+        body: JSON.stringify({ query: `{Page(perPage:20){media(id_in:[${ANIKKU_WALL}],type:ANIME){id coverImage{extraLarge}}}}` }),
+      }).then(r => r.json()).then(d => {
+        const byId = new Map(d.data.Page.media.map(m => [m.id, m.coverImage.extraLarge]));
+        return ANIKKU_WALL.map(id => byId.get(id)).filter(Boolean);
+      }))
         .then(u => wall('wall-anikku', u)).catch(() => {});
       cached('ciname.movies', () => fetch('https://itunes.apple.com/us/rss/topmovies/limit=16/json')
         .then(r => r.json()).then(d => d.feed.entry.map(e => e['im:image'].slice(-1)[0].label.replace(/\/[^/]+$/, '/400x600bb.jpg'))))
