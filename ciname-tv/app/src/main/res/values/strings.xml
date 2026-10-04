@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ciname</string>
+    <string name="popup_blocked">Pop-up blocked</string>
+    <string name="no_app_for_link">Nothing on this TV can open that link</string>
+</resources>

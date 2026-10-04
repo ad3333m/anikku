@@ -121,7 +121,7 @@ function bindHero(view, slides, token) {
     const ep = h?.ep || 1;
     const inList = store.inList(m.id);
     hero.querySelector('.hero-actions').innerHTML = `
-      <a class="btn primary" href="#/watch/${m.id}/${ep}">${icon('play', 18)} ${h ? `Continue E${ep}` : 'Start Watching'}</a>
+      <a class="btn primary" data-tv-autofocus href="#/watch/${m.id}/${ep}">${icon('play', 18)} ${h ? `Continue E${ep}` : 'Start Watching'}</a>
       <button class="btn glass" data-list>${icon(inList ? 'check' : 'plus', 18)} My List</button>
       <a class="btn glass icon-only" href="#/anime/${m.id}" aria-label="Details">${icon('info', 20)}</a>`;
     hero.querySelector('[data-list]').onclick = () => {
@@ -147,7 +147,11 @@ function bindHero(view, slides, token) {
   };
   const restart = () => {
     clearTimeout(heroTimer);
-    heroTimer = setTimeout(() => token.current && show(idx + 1), 9000);
+    heroTimer = setTimeout(() => {
+      if (!token.current) return;
+      // on a TV, hold the slide while the remote's focus ring is on it, or its buttons vanish under it
+      if (hero.querySelector('.tvnav-focus')) restart(); else show(idx + 1);
+    }, 9000);
   };
   hero.querySelectorAll('.hero-thumb').forEach(b => b.addEventListener('click', () => show(+b.dataset.i)));
 

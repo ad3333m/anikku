@@ -511,3 +511,39 @@ body[data-route="watch"] { --topbar: 60px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------------------------------------------------------------- Ciname TV (Android TV, remote only)
+   The UI is 960×540 CSS px on a 1080p Google TV interface. No blur (the costliest thing a TV GPU can be
+   asked for), no hover-only effects, the player fills the screen with the page below it, and the remote's
+   focus ring is drawn here for cards so it hugs the artwork rather than the whole card. */
+.tv *, .tv *::before, .tv *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.tv body.scrolled #topbar, .tv body:not([data-route="home"]):not([data-route="anime"]) #topbar { background: rgba(8, 8, 11, .94); }
+.tv .tabs { background: rgba(5, 5, 7, .96); }
+.tv .btn.glass, .tv .tag, .tv .series-facts { background: rgba(40, 40, 48, .82); }
+.tv .hero-slide.on img, .tv .series-art img { animation: none; transform: none; }
+.tv .scroller { scroll-behavior: smooth; }
+.tv .nudge { display: none; }
+
+.tv .card.tvnav-focus, .tv .ep.tvnav-focus, .tv .ep-row.tvnav-focus, .tv .genre-tile.tvnav-focus, .tv .hero-thumb.tvnav-focus {
+  outline: none !important; box-shadow: none !important;
+}
+.tv .card.tvnav-focus .thumb, .tv .ep.tvnav-focus .ep-thumb {
+  transform: scale(1.06); box-shadow: 0 0 0 4px var(--accent), 0 18px 46px -10px rgba(255, 122, 26, .7) !important;
+}
+.tv .card .thumb, .tv .ep .ep-thumb { transition: transform .18s ease, box-shadow .18s ease; }
+.tv .card.tvnav-focus .hover, .tv .card.tvnav-focus .hover-play { opacity: 1; transform: none; }
+.tv .ep.tvnav-focus .ep-play { opacity: 1; transform: scale(1); }
+.tv .card.wide .thumb.tvnav-focus { outline: none !important; transform: scale(1.04); box-shadow: 0 0 0 4px var(--accent), 0 18px 46px -10px rgba(255, 122, 26, .7) !important; }
+.tv .card.wide .thumb { transition: transform .18s ease, box-shadow .18s ease; }
+.tv .ep-row.tvnav-focus { background: rgba(255, 122, 26, .16); box-shadow: inset 0 0 0 3px var(--accent) !important; }
+.tv .genre-tile.tvnav-focus { transform: translateY(-5px); box-shadow: 0 0 0 4px #fff, 0 18px 40px -12px var(--a) !important; }
+.tv .hero-thumb.tvnav-focus { opacity: 1; box-shadow: 0 0 0 3px var(--accent) !important; }
+.tv .btn.tvnav-focus, .tv .chip.tvnav-focus, .tv .tab.tvnav-focus, .tv .nav a.tvnav-focus, .tv .icon-btn.tvnav-focus,
+.tv .srv.tvnav-focus, .tv .seg button.tvnav-focus { outline-offset: 2px !important; border-radius: 999px; }
+
+.tv body[data-route="watch"] #topbar { display: none; }
+.tv body[data-route="watch"] .watch { padding-top: 0; }
+.tv body[data-route="watch"] .player-wrap { padding: 0; }
+.tv body[data-route="watch"] .player-box { height: 100vh; max-height: none; max-width: none; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+.tv body[data-route="watch"] .player-box.tvnav-focus { outline: none !important; box-shadow: none !important; scroll-margin: 0 !important; }
+.tv body[data-route="watch"] .watch-body { padding-top: 22px; grid-template-columns: minmax(0, 1fr) 320px; }

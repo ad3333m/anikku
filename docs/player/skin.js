@@ -213,6 +213,7 @@
       .opt { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 10px 12px; border-radius: 10px; font-weight: 600; }
       .opt:hover { background: rgba(255,255,255,.08); }
       .opt.sel { color: #ff9a3c; }
+      .opt.kb { background: rgba(255,122,26,.2); box-shadow: inset 0 0 0 2px #ff7a1a; }
       .opt svg { opacity: 0; } .opt.sel svg { opacity: 1; }
       .spin { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px; border-radius: 50%; border: 4px solid rgba(255,255,255,.15); border-top-color: #ff7a1a; animation: sp .8s linear infinite; display: none; pointer-events: none; }
       .buffering .spin { display: block; }
@@ -387,11 +388,20 @@
       }
       menu.classList.add('open');
       show();
+      if (remoteUsed) {
+        const opts = [...menu.querySelectorAll('.opt')];
+        const at = opts.find(o => o.classList.contains('sel')) || opts[0];
+        if (at) at.classList.add('kb');
+      }
+      post('menu', { open: true });
       menu.querySelectorAll('[data-cc]').forEach(b => b.onclick = e => { e.stopPropagation(); jw.setCurrentCaptions(+b.dataset.cc); closeMenu(); });
       menu.querySelectorAll('[data-q]').forEach(b => b.onclick = e => { e.stopPropagation(); jw.setCurrentQuality(+b.dataset.q); closeMenu(); });
       menu.querySelectorAll('[data-rate]').forEach(b => b.onclick = e => { e.stopPropagation(); jw.setPlaybackRate(+b.dataset.rate); closeMenu(); });
     }
-    function closeMenu() { menu.classList.remove('open'); }
+    function closeMenu() {
+      if (menu.classList.contains('open')) post('menu', { open: false });
+      menu.classList.remove('open');
+    }
 
     // ---- volume
     const volInput = root.querySelector('.vol input');
@@ -413,6 +423,34 @@
       else if (k === 'n' && info.hasNext) post('next');
       else if (k === 'escape') post('back');
     });
+
+    // ---- TV remote: Ciname TV forwards the remote's keys here while the player has the focus ring.
+    // OK plays/pauses (or skips the intro when that button is up), left/right seek, up opens subtitles,
+    // and inside a menu up/down/OK pick an option.
+    let remoteUsed = false;
+    const remote = key => {
+      remoteUsed = true;
+      show();
+      if (menu.classList.contains('open')) {
+        const opts = [...menu.querySelectorAll('.opt')];
+        let i = opts.findIndex(o => o.classList.contains('kb'));
+        if (key === 'up' || key === 'down') {
+          i = i < 0 ? 0 : (i + (key === 'down' ? 1 : opts.length - 1)) % opts.length;
+          opts.forEach((o, n) => o.classList.toggle('kb', n === i));
+          if (opts[i]) opts[i].scrollIntoView({ block: 'nearest' });
+        } else if (key === 'ok') { if (opts[i]) opts[i].click(); }
+        else closeMenu();
+        return;
+      }
+      if (key === 'ok' || key === 'playpause') { if (pill.classList.contains('show')) actions.skip(); else toggle(); }
+      else if (key === 'pause') jw.pause();
+      else if (key === 'left' || key === 'rw') seekBy(-10);
+      else if (key === 'right' || key === 'ff') seekBy(10);
+      else if (key === 'up' || key === 'captions') openMenu('cc');
+      else if (key === 'menu') openMenu('settings');
+      else if (key === 'next' && info.hasNext) post('next');
+    };
+    window.addEventListener('message', ev => { if (ev.data && ev.data.anikkuCmd === 'key') remote(ev.data.key); });
 
     // ---- state
     const syncPlay = () => {

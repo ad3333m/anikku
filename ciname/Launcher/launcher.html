@@ -109,6 +109,16 @@
       footer { padding-top: 8px; }
     }
     @media (prefers-reduced-motion: reduce) { .aurora i, .wall .row { animation: none; } }
+
+    /* Ciname TV: the remote's focus ring becomes the card's own glow; no blur, which TVs pay dearly for */
+    .tv .tags b { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(40, 40, 46, .85); }
+    .tv .aurora i { filter: none; }
+    .tv .card.tvnav-focus { outline: none !important; transform: scale(1.035);
+      box-shadow: 0 0 0 4px var(--accent), 0 30px 80px -20px var(--glow) !important; }
+    .tv .card.tvnav-focus .go-btn { transform: translateX(4px) scale(1.08); }
+    .tv .hint-touch { display: none; }
+    .hint-tv { display: none; }
+    .tv .hint-tv { display: inline; }
   </style>
 </head>
 <body>
@@ -121,7 +131,7 @@
   </header>
 
   <main class="cards" id="cards">
-    <button class="card anikku" data-open="anikku" aria-label="Open Anikku">
+    <button class="card anikku" data-open="anikku" data-tv-autofocus aria-label="Open Anikku">
       <div class="wall" id="wall-anikku"></div>
       <img class="mark" src="anikku.png" alt="">
       <div class="shade"></div>
@@ -152,10 +162,11 @@
     </button>
   </main>
 
-  <footer>Swipe in from the left edge to come back here</footer>
+  <footer><span class="hint-touch">Swipe in from the left edge to come back here</span><span class="hint-tv">Press Back on the remote to come back here</span></footer>
 
   <script>
     (() => {
+      if (/CinameTV/.test(navigator.userAgent) || window.CinameTV) document.documentElement.classList.add('tv');
       const h = new Date().getHours();
       document.getElementById('greet').textContent =
         h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
@@ -193,7 +204,9 @@
       const cards = document.getElementById('cards');
       const send = app => {
         const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ciname;
-        if (bridge) bridge.postMessage({ open: app }); else console.log('open', app);
+        if (bridge) bridge.postMessage({ open: app });
+        else if (window.CinameTV) window.CinameTV.open(app);   // Ciname for Google TV
+        else console.log('open', app);
       };
       let busy = false;
       cards.querySelectorAll('.card').forEach(card => {

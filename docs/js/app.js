@@ -45,6 +45,7 @@ async function route() {
     console.error(e);
   }
   if (remembered && token.current) requestAnimationFrame(() => window.scrollTo(0, remembered));
+  if (tv && token.current && window.TvNav) window.TvNav.autofocus();
   lastHash = hash;
   onScroll();
 }
@@ -70,4 +71,7 @@ document.addEventListener('keydown', e => {
   if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); location.hash = '#/search'; }
 });
 if (/AnikkuApp/.test(navigator.userAgent)) document.documentElement.classList.add('in-app');
+// Ciname TV (Android TV): remote-driven, 10-foot layout. Its navigator lands on [data-tv-autofocus].
+const tv = /CinameTV/.test(navigator.userAgent) || !!window.CinameTV;
+if (tv) document.documentElement.classList.add('tv');
 route();

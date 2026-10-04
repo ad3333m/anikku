@@ -45,7 +45,7 @@ export async function render(view, token, id) {
         <div class="hero-meta">${metaBits(m)}${m.status ? `<span>${STATUS[m.status] || m.status}</span>` : ''}</div>
         <div class="chips">${(m.genres || []).map(g => `<a class="chip" href="#/browse?genre=${encodeURIComponent(g)}">${esc(g)}</a>`).join('')}</div>
         <div class="hero-actions">
-          ${total > 0 ? `<a class="btn primary" href="#/watch/${m.id}/${resumeEp}">${icon('play', 18)} ${h ? `Continue E${resumeEp}` : 'Start Watching E1'}</a>`
+          ${total > 0 ? `<a class="btn primary" data-tv-autofocus href="#/watch/${m.id}/${resumeEp}">${icon('play', 18)} ${h ? `Continue E${resumeEp}` : 'Start Watching E1'}</a>`
             : `<span class="btn glass disabled">${nextAir ? `Premieres ${new Date(nextAir.airingAt * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}` : 'Coming soon'}</span>`}
           <button class="btn glass" data-list>${icon(store.inList(m.id) ? 'check' : 'plus', 18)} My List</button>
           ${m.trailer?.site === 'youtube' ? `<a class="btn glass" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${esc(m.trailer.id)}">${icon('tv', 18)} Trailer</a>` : ''}

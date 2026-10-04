@@ -77,7 +77,7 @@ export async function searchPage(view, token, params) {
   <div class="page">
     <form class="search-big" id="search-form">
       ${icon('search', 22)}
-      <input id="search-input" type="search" autocomplete="off" placeholder="Search anime" value="${esc(q)}">
+      <input id="search-input" type="search" data-tv-autofocus autocomplete="off" placeholder="Search anime" value="${esc(q)}">
     </form>
     <div id="search-body"></div>
   </div>`;

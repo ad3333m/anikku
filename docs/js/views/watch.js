@@ -3,8 +3,9 @@ import * as store from '../store.js';
 import { orderedServers } from '../servers.js';
 import { icon, esc, titleOf, cleanText, toast, errorBox } from '../ui.js';
 
-// The Anikku apps (iOS/Windows) inject a skin into the player frame. It talks to this page with
-// postMessage: ready / progress / ended / error / next / prev / back, and receives "init".
+// The Anikku apps (iOS, Ciname, Ciname TV) inject a skin into the player frame. It talks to this page
+// with postMessage: ready / progress / ended / error / next / prev / back / menu, and receives "init"
+// (and, on a TV, the remote's keys as {anikkuCmd: 'key'}).
 
 export async function render(view, token, id, epStr) {
   const ep = Math.max(1, parseInt(epStr, 10) || 1);
@@ -124,6 +125,24 @@ export async function render(view, token, id, epStr) {
 
   const goNext = () => { if (ep < total) location.hash = `#/watch/${m.id}/${ep + 1}`; };
 
+  // Ciname TV: the player box takes the remote's focus ring when the episode opens, and while it has
+  // it the remote drives the player skin. Down (with no player menu open) moves on to the buttons and
+  // episodes below, Back leaves the episode.
+  let menuOpen = false;
+  const tv = document.documentElement.classList.contains('tv');
+  if (tv) {
+    const box = view.querySelector('.player-box');
+    box.tabIndex = 0;
+    box.setAttribute('data-tv-autofocus', '');
+    box.__tvKey = key => {
+      if ((key === 'down' || key === 'back') && !menuOpen) return false;
+      if (frame.contentWindow) frame.contentWindow.postMessage({ anikkuCmd: 'key', key }, '*');
+      return true;
+    };
+    try { window.CinameTV && window.CinameTV.watching(true); } catch (e) { /* not on the TV */ }
+    token.cleanup.push(() => { try { window.CinameTV && window.CinameTV.watching(false); } catch (e) { /* gone */ } });
+  }
+
   const onMessage = ev => {
     if (ev.source !== frame.contentWindow) return;
     const msg = ev.data;
@@ -168,6 +187,7 @@ export async function render(view, token, id, epStr) {
         tryNextServer(msg.reason || `${servers[serverIdx]?.name} can't play this episode`);
         break;
       case 'next': goNext(); break;
+      case 'menu': menuOpen = !!msg.open; break;
       case 'prev': if (ep > 1) location.hash = `#/watch/${m.id}/${ep - 1}`; break;
       case 'back': history.length > 1 ? history.back() : (location.hash = `#/anime/${m.id}`); break;
     }
