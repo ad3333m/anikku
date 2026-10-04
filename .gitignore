@@ -12,3 +12,4 @@ ciname/Web/
 ciname/build/
 ciname/Generated/
 ciname/*.xcodeproj/
+*.apk

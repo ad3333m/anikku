@@ -25,7 +25,10 @@
   button.addEventListener('click', e => {
     e.preventDefault();
     e.stopPropagation();
-    try { window.webkit.messageHandlers.ciname.postMessage('exit'); } catch (err) { /* not inside Ciname */ }
+    try {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ciname) window.webkit.messageHandlers.ciname.postMessage('exit');
+      else if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('exit');   // Ciname for Windows
+    } catch (err) { /* not inside Ciname */ }
   });
 
   // the site re-renders its header as you move around, so keep checking where the button belongs
@@ -47,6 +50,7 @@
       button.remove();
     }
   };
-  new MutationObserver(place).observe(document.documentElement, { childList: true, subtree: true });
-  place();
+  // `document`, not documentElement: on Windows this runs before the page has any HTML
+  new MutationObserver(place).observe(document, { childList: true, subtree: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', place); else place();
 })();
