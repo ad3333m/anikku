@@ -1,0 +1,34 @@
+name: iOS app
+
+on:
+  push:
+    branches: [main]
+    paths: ["ios/**", "docs/player/skin.js", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Anikku.ipa
+        run: bash ios/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Anikku-ipa
+          path: dist/Anikku.ipa
+
+  simulator:
+    runs-on: macos-15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for the simulator
+        run: bash ios/build.sh simulator
+      - name: Run on iPhone 17 Pro Max and 12.9" iPad Pro
+        run: bash ios/simulator_test.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulator-screenshots
+          path: sim-shots/

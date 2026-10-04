@@ -2,3 +2,8 @@
 node_modules/
 build/
 dist/
+ios/Web/
+ios/build/
+ios/Generated/
+ios/*.xcodeproj/
+sim-shots/
