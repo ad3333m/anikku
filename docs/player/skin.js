@@ -126,6 +126,7 @@
       html, body { background: #000 !important; overflow: hidden !important; }
       .jw-captions { transition: bottom .25s ease, transform .25s ease !important; }
       .anx-on .jw-captions { transform: translateY(-74px) !important; }
+      @media (max-height: 330px) { .anx-on .jw-captions { transform: translateY(-52px) !important; } }
       .jw-text-track-cue { background: rgba(0,0,0,.55) !important; font-family: Inter, -apple-system, "Segoe UI", sans-serif !important;
         font-weight: 600 !important; border-radius: 6px !important; padding: 2px 8px !important; text-shadow: 0 2px 4px rgba(0,0,0,.7) !important; }`;
     document.head.appendChild(page);
@@ -226,6 +227,24 @@
       @keyframes rip { 0% { opacity: 1; } 100% { opacity: 0; } }
       .touch .bar .hide-touch { display: none; }
       @media (max-width: 520px) { .big { width: 64px; height: 64px; } .mid { width: 48px; height: 48px; } .t2 { font-size: 15px; } .time { font-size: 12.5px; } }
+      /* a phone held upright gives the player about 240px of height: everything a size down so nothing overlaps */
+      @media (max-height: 330px) {
+        .top { gap: 6px; padding-top: max(6px, env(safe-area-inset-top)); }
+        .icon, .bar .icon { width: 36px; height: 36px; }
+        .icon svg { width: 20px; height: 20px; }
+        .t1 { font-size: 10px; } .t2 { font-size: 13.5px; }
+        .center { gap: 30px; }
+        .big { width: 54px; height: 54px; } .big svg { width: 26px; height: 26px; }
+        .mid { width: 42px; height: 42px; } .mid svg { width: 22px; height: 22px; }
+        .bottom { padding-bottom: max(2px, env(safe-area-inset-bottom)); }
+        .seek { height: 20px; }
+        .bar { gap: 0; margin-top: 0; }
+        .bar [data-a="toggle"] { display: none; }
+        .time { font-size: 11.5px; margin: 0 4px; }
+        .pill { bottom: 62px; height: 34px; padding: 0 14px; font-size: 13px; }
+        .menu { bottom: 54px; min-width: 200px; max-height: calc(100% - 64px); }
+        .opt { padding: 7px 10px; }
+      }
     </style>
     <div class="ui on${touch ? ' touch' : ''}">
       <div class="shade"></div>
@@ -274,10 +293,12 @@
     const show = () => {
       box.classList.add('on'); box.classList.remove('idle'); container.classList.add('anx-on');
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => { if (playing() && !menu.classList.contains('open') && !seek.classList.contains('drag')) hide(); }, touch ? 3200 : 2600);
+      idleTimer = setTimeout(() => { if (playing() && !menu.classList.contains('open') && !seek.classList.contains('drag')) hide(); }, touch ? 4500 : 2600);
     };
     const hide = () => { box.classList.remove('on'); box.classList.add('idle'); container.classList.remove('anx-on'); closeMenu(); };
-    box.addEventListener('mousemove', show);
+    // A real mouse shows the controls as it moves. A phone sends a fake mousemove with every tap, and
+    // the tap itself then toggles the controls, so they'd flash up and vanish before a button could be hit.
+    box.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') show(); });
 
     // ---- actions
     const seekBy = d => { jw.seek(Math.min(Math.max(0, pos() + d), Math.max(0, dur() - 1))); show(); };

@@ -1,10 +1,11 @@
-"""Builds the Ciname website for GitHub Pages:
+"""Builds the Ciname website (Cloudflare Pages at anikku.pages.dev, and GitHub Pages):
 
-  <out>/index.html          the picker (ciname/Launcher), Anikku -> anikku/, Cinejoy -> cinejoy.pk
+  <out>/index.html          the picker (ciname/Launcher): Anikku -> anikku/, Cinejoy -> cinejoy/
   <out>/anikku/index.html   Anikku (docs/, bundled into one page by ios/bundle_web.py)
+  <out>/cinejoy/            Cinejoy in a browser frame, through the Scramjet proxy (site/cinejoy)
 
-Both pages open behind the passcode screen in site/gate.html. Only the passcode's SHA-256 is kept
-here (the repo is public); a correct code is remembered on that device.
+Every page opens behind the passcode screen in site/gate.html. Only the passcode's SHA-256 is kept
+here (the repo is public); an unlock lasts until the page is refreshed.
 
 usage: python3 site/build.py <out-dir>      (needs Node for esbuild, like ios/bundle_web.py)
 """
@@ -39,11 +40,13 @@ run(ROOT / "ios" / "bundle_web.py", OUT / "anikku")
 (OUT / "anikku" / "skin.js").unlink(missing_ok=True)      # the skin needs an app to inject it
 run(ROOT / "ciname" / "tools" / "inline_launcher.py", OUT)
 (OUT / "launcher.html").rename(OUT / "index.html")
+shutil.copytree(ROOT / "site" / "cinejoy", OUT / "cinejoy")
 
 logo = "data:image/png;base64," + base64.b64encode((ROOT / "ciname" / "Launcher" / "ciname.png").read_bytes()).decode()
 gate = (ROOT / "site" / "gate.html").read_text(encoding="utf-8").replace("{{HASH}}", PASS_HASH).replace("{{LOGO}}", logo)
 head = f'<script>window.CINAME_WEB = true;</script>\n<link rel="icon" type="image/png" href="{logo}">\n{gate}\n'
 inject(OUT / "index.html", head)
 inject(OUT / "anikku" / "index.html", head)
+inject(OUT / "cinejoy" / "index.html", head)
 (OUT / ".nojekyll").write_text("")
 print("website ->", OUT)

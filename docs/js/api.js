@@ -106,6 +106,25 @@ export async function homeRows() {
   };
 }
 
+/** The Home banner: hand-picked big shows (Adam's picks), in this order. */
+export const FEATURED = [
+  195604,  // Black Clover Season 2
+  190327,  // Steel Ball Run: JoJo's Bizarre Adventure
+  14719,   // JoJo's Bizarre Adventure
+  189046,  // Re:Zero Season 4
+  21175,   // Dragon Ball Super
+  176496,  // Solo Leveling Season 2
+  172463,  // Jujutsu Kaisen: The Culling Game
+  171627,  // Chainsaw Man: The Movie – Reze Arc
+];
+
+export async function featured() {
+  const q = `${CARD} query ($ids: [Int]) { Page(perPage: 20) { media(id_in: $ids, ${SAFE}) { ...card } } }`;
+  const d = await gql(q, { ids: FEATURED }, { cacheKey: 'featured:' + FEATURED.join(','), ttl: 60 * 60 * 1000 });
+  const byId = new Map(d.Page.media.filter(safe).map(m => [m.id, m]));
+  return FEATURED.map(id => byId.get(id)).filter(Boolean);
+}
+
 export async function genreRow(genre) {
   const q = `${CARD} query ($g: String) { Page(perPage: 24) { media(${SAFE}, genre: $g, sort: TRENDING_DESC) { ...card } } }`;
   const d = await gql(q, { g: genre }, { cacheKey: 'genre:' + genre });

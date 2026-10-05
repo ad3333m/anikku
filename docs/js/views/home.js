@@ -14,9 +14,9 @@ let heroTimer = null;
 
 export async function render(view, token) {
   view.innerHTML = `<div class="hero hero-loading"><div class="hero-shade"></div></div>${skeletonRow()}${skeletonRow()}${skeletonRow()}`;
-  let data;
+  let data, picks;
   try {
-    data = await api.homeRows();
+    [data, picks] = await Promise.all([api.homeRows(), api.featured().catch(() => [])]);
   } catch (e) {
     if (token.current) view.innerHTML = errorBox(e.message);
     return;
@@ -25,7 +25,8 @@ export async function render(view, token) {
 
   const watching = store.continueWatching();
   const list = store.myList();
-  const slides = data.trending.filter(m => m.bannerImage).slice(0, 7);
+  // the banner shows the hand-picked shows (api.FEATURED), or what's trending if they couldn't load
+  const slides = picks.length ? picks : data.trending.filter(m => m.bannerImage).slice(0, 7);
 
   view.innerHTML = `
     ${heroHTML(slides, data.seasonLabel)}
@@ -85,7 +86,7 @@ function heroHTML(slides, seasonLabel) {
   return `
   <section class="hero" style="--tint:${slides[0].coverImage?.color || '#f47521'}">
     <div class="hero-bg">${slides.map((m, i) =>
-      `<div class="hero-slide${i === 0 ? ' on' : ''}" data-i="${i}"><img src="${esc(m.bannerImage)}" alt=""></div>`).join('')}</div>
+      `<div class="hero-slide${i === 0 ? ' on' : ''}" data-i="${i}"><img src="${esc(m.bannerImage || m.coverImage?.extraLarge || '')}" alt=""></div>`).join('')}</div>
     <div class="hero-shade"></div>
     <div class="hero-content">
       <div class="hero-kicker"></div>
@@ -112,7 +113,7 @@ function bindHero(view, slides, token) {
     const h = store.animeHistory(m.id);
     const t = esc(titleOf(m));
     hero.style.setProperty('--tint', m.coverImage?.color || '#f47521');
-    hero.querySelector('.hero-kicker').innerHTML = `<span class="pill">${icon('fire', 14)} #${i + 1} Trending</span>${m.genres?.slice(0, 3).map(g => `<span class="tag">${esc(g)}</span>`).join('') || ''}`;
+    hero.querySelector('.hero-kicker').innerHTML = `<span class="pill">${icon('fire', 14)} Popular now</span>${m.genres?.slice(0, 3).map(g => `<span class="tag">${esc(g)}</span>`).join('') || ''}`;
     hero.querySelector('.hero-title').innerHTML = ex?.logo
       ? `<img class="hero-logo" src="${esc(ex.logo)}" alt="${t}" onerror="this.outerHTML='<h1>${t.replace(/'/g, '&#39;')}</h1>'">`
       : `<h1>${t}</h1>`;

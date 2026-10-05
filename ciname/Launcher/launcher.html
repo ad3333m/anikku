@@ -163,7 +163,7 @@
     </button>
   </main>
 
-  <footer><span class="hint-touch">Swipe in from the left edge to come back here</span><span class="hint-tv">Press Back on the remote to come back here</span><span class="hint-desktop">The back arrow on each app's Home (or Alt+Home) brings you back here</span><span class="hint-android">Back from an app's Home brings you back here</span><span class="hint-web">Anikku's back arrow on its Home brings you back here</span></footer>
+  <footer><span class="hint-touch">Swipe in from the left edge to come back here</span><span class="hint-tv">Press Back on the remote to come back here</span><span class="hint-desktop">The back arrow on each app's Home (or Alt+Home) brings you back here</span><span class="hint-android">Back from an app's Home brings you back here</span><span class="hint-web">The back arrow in each app brings you back here</span></footer>
 
   <script>
     (() => {
@@ -219,7 +219,7 @@
         else if (window.CinameTV) window.CinameTV.open(app);   // Ciname for Google TV
         else if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage({ open: app });   // Ciname for Windows
         else if (window.CinameAndroid) window.CinameAndroid.open(app);                                         // Ciname for Android
-        else if (window.CINAME_WEB) location.href = app === 'anikku' ? 'anikku/' : 'https://cinejoy.pk/';     // the website
+        else if (window.CINAME_WEB) location.href = app === 'anikku' ? 'anikku/' : 'cinejoy/';                // the website
         else console.log('open', app);
       };
       let busy = false;
