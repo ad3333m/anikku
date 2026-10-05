@@ -15,7 +15,7 @@ class PickerPane(activity: MainActivity) : Pane(activity, "#FF9A2E") {
     }
 
     init {
-        web.addJavascriptInterface(Bridge(), "CinameTV")
+        web.addJavascriptInterface(Bridge(), Device.bridge)
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                 if (request.url.host == HOST) activity.page("picker/launcher.html") else null

@@ -1,9 +1,9 @@
-name: Ciname TV APK
+name: Ciname Android APKs
 
 on:
   push:
     branches: [main]
-    paths: ["ciname-tv/**", "ciname/Launcher/**", "ciname/tools/inline_launcher.py", "docs/**", "ios/bundle_web.py", ".github/workflows/ciname-tv.yml"]
+    paths: ["ciname-tv/**", "ciname/Launcher/**", "ciname/Injected/**", "ciname/tools/inline_launcher.py", "docs/**", "ios/bundle_web.py", ".github/workflows/ciname-tv.yml"]
   workflow_dispatch:
 
 jobs:
@@ -33,27 +33,38 @@ jobs:
         run: |
           python3 ios/bundle_web.py ciname-tv/app/src/main/assets/anikku
           python3 ciname/tools/inline_launcher.py ciname-tv/app/src/main/assets/picker
+          mkdir -p ciname-tv/app/src/main/assets/cinejoy
+          cp ciname/Injected/back-button.js ciname-tv/app/src/main/assets/cinejoy/
           ls -la ciname-tv/app/src/main/assets/*
 
       - name: Unit tests
-        run: gradle -p ciname-tv :app:testReleaseUnitTest
+        run: gradle -p ciname-tv :app:testTvReleaseUnitTest
 
-      - name: Build the APK
-        run: gradle -p ciname-tv :app:assembleRelease
+      # tv: Google TV (the BRAVIA build), phone: Android phones and tablets
+      - name: Build the APKs
+        run: gradle -p ciname-tv :app:assembleTvRelease :app:assemblePhoneRelease
 
-      - name: Name it
+      - name: Name them
         run: |
           set -eu
-          SRC=$(find ciname-tv/app/build/outputs/apk/release -name '*.apk' | head -n1)
-          test -n "$SRC" || { echo "no apk was produced"; exit 1; }
           mkdir -p out
-          cp "$SRC" out/Ciname-TV.apk
-          echo "built $(du -h out/Ciname-TV.apk | cut -f1)"
+          TV=$(find ciname-tv/app/build/outputs/apk/tv/release -name '*.apk' | head -n1)
+          PHONE=$(find ciname-tv/app/build/outputs/apk/phone/release -name '*.apk' | head -n1)
+          test -n "$TV" && test -n "$PHONE" || { echo "an apk is missing"; exit 1; }
+          cp "$TV" out/Ciname-TV.apk
+          cp "$PHONE" out/Ciname-Android.apk
+          du -h out/*.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: Ciname-TV-apk
           path: out/Ciname-TV.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ciname-Android-apk
+          path: out/Ciname-Android.apk
           if-no-files-found: error
 
   tv-emulator:
@@ -86,3 +97,33 @@ jobs:
         with:
           name: tv-screenshots
           path: tv-shots/
+
+  phone-emulator:
+    needs: build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Ciname-Android-apk
+          path: out
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run on a phone emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash ciname-tv/tools/phone_test.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phone-screenshots
+          path: phone-shots/

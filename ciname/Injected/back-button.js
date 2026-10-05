@@ -28,6 +28,7 @@
     try {
       if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ciname) window.webkit.messageHandlers.ciname.postMessage('exit');
       else if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('exit');   // Ciname for Windows
+      else if (window.CinameAndroid) window.CinameAndroid.exit();                                     // Ciname for Android
     } catch (err) { /* not inside Ciname */ }
   });
 

@@ -29,7 +29,7 @@ class AnikkuPane(activity: MainActivity) : Pane(activity, "#FF7A1A") {
     init {
         web.settings.javaScriptCanOpenWindowsAutomatically = false
         web.settings.setSupportMultipleWindows(true)   // so a pop-up asks first, and is refused
-        web.addJavascriptInterface(Bridge(), "CinameTV")
+        web.addJavascriptInterface(Bridge(), Device.bridge)
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             WebViewCompat.addDocumentStartJavaScript(web, "try{window.open=function(){return null}}catch(e){}", setOf("*"))

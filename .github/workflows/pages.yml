@@ -1,0 +1,33 @@
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", "ciname/Launcher/**", "ciname/tools/inline_launcher.py", "ios/bundle_web.py", "site/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # the picker and Anikku, behind the passcode screen (site/build.py, site/gate.html)
+      - name: Build the website
+        run: python3 site/build.py _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,7 +1,7 @@
 package com.ad3333m.ciname
 
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -17,10 +17,12 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.ByteArrayInputStream
 
 /**
- * Ciname for Google TV: opens on a picker, then Anikku or Cinejoy. Each is a full-screen WebView in one
+ * Ciname for Google TV and Android phones (see Device): opens on a picker, then Anikku or Cinejoy. Each is a full-screen WebView in one
  * Activity, stacked in [root]; an app keeps its place when you go back to the picker. Built for a Sony
  * BRAVIA 8: remote only, read from across a room, and gentle on the TV's GPU.
  */
@@ -32,11 +34,6 @@ class MainActivity : AppCompatActivity() {
     private val apps = HashMap<String, Pane>()
     private var current: Pane? = null
 
-    val isTv by lazy {
-        packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
-            packageManager.hasSystemFeature("android.hardware.type.television")
-    }
-
     /** res/raw/tv_nav.js, injected into every page. */
     val navScript: String by lazy { resources.openRawResource(R.raw.tv_nav).bufferedReader().use { it.readText() } }
 
@@ -46,6 +43,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         root = findViewById(R.id.root)
         window.setBackgroundDrawableResource(R.color.page)
+        if (!Device.tv) {
+            // phones draw edge to edge (Android 15+): keep the pages clear of the status and gesture bars
+            ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+                v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+                insets
+            }
+        }
 
         picker = PickerPane(this)
         root.addView(picker.web, fill())
@@ -160,6 +165,13 @@ class MainActivity : AppCompatActivity() {
             compareBy<Display.Mode>({ it.physicalWidth.toLong() * it.physicalHeight }, { it.refreshRate })) ?: return
         params.preferredDisplayModeId = best.modeId
         window.attributes = params
+    }
+
+    /** On a phone a full-screen video turns sideways; on a TV the screen already is. */
+    fun landscapeForVideo(on: Boolean) {
+        if (Device.tv) return
+        requestedOrientation = if (on) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                               else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 
     fun goImmersive(on: Boolean) {

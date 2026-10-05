@@ -43,7 +43,7 @@ abstract class Pane(protected val activity: MainActivity, private val accent: St
             builtInZoomControls = false
             displayZoomControls = false
             // the pages switch to their TV layout when they see this
-            userAgentString = "$userAgentString CinameTV/1.0"
+            userAgentString = userAgentString + Device.agent
         }
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
@@ -61,6 +61,8 @@ abstract class Pane(protected val activity: MainActivity, private val accent: St
     }
 
     protected fun injectNavigator() {
+        // a phone is driven by touch: no focus ring, the page's own taps and the system Back
+        if (!Device.tv) { navReady = true; return }
         web.evaluateJavascript("window.TvNavConfig={accent:'$accent'};\n" + activity.navScript) {
             navReady = true
         }
@@ -70,6 +72,7 @@ abstract class Pane(protected val activity: MainActivity, private val accent: St
 
     /** Every key the remote sends while this pane is on screen. True when it was used here. */
     open fun onKey(event: KeyEvent): Boolean {
+        if (!Device.tv) return false      // a phone's keys (and keyboard) go to the page as usual
         val name = keyName(event.keyCode) ?: return false
         // the matching key-ups are swallowed too, or the WebView sees half a press and moves on its own
         if (event.action == KeyEvent.ACTION_DOWN) send(name)
@@ -117,6 +120,7 @@ abstract class Pane(protected val activity: MainActivity, private val accent: St
         activity.keepAwake(true)
         activity.goImmersive(true)
         activity.preferLargestDisplayMode(true)
+        activity.landscapeForVideo(true)
         onFullscreen(true)
     }
 
@@ -130,6 +134,7 @@ abstract class Pane(protected val activity: MainActivity, private val accent: St
         activity.keepAwake(false)
         activity.goImmersive(false)
         activity.preferLargestDisplayMode(false)
+        activity.landscapeForVideo(false)
         onFullscreen(false)
     }
 

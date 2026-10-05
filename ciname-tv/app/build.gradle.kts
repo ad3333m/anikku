@@ -12,8 +12,28 @@ android {
         // 24 covers every Google TV in the wild; the Bravia 8 is far past it.
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+    }
+
+    buildFeatures { buildConfig = true }
+
+    // tv: Google TV, remote only (the BRAVIA build). phone: the same app for Android phones and tablets.
+    flavorDimensions += "device"
+    productFlavors {
+        create("tv") {
+            dimension = "device"
+            applicationId = "com.ad3333m.ciname"
+            versionName = "1.0.3"
+            buildConfigField("boolean", "TV", "true")
+            manifestPlaceholders["orientation"] = "landscape"
+        }
+        create("phone") {
+            dimension = "device"
+            applicationId = "com.ad3333m.ciname.android"
+            versionName = "1.0.0"
+            buildConfigField("boolean", "TV", "false")
+            manifestPlaceholders["orientation"] = "unspecified"
+        }
     }
 
     buildTypes {

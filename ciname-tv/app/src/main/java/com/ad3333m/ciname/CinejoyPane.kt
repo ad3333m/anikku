@@ -9,7 +9,10 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 
 /**
  * Cinejoy: cinejoy.pk, as in Cinejoy for Google TV (ad3333m/cinejoy-android). Routing.kt decides where
@@ -32,7 +35,16 @@ class CinejoyPane(activity: MainActivity) : Pane(activity, "#95FF50") {
     init {
         web.settings.javaScriptCanOpenWindowsAutomatically = true
         web.settings.setSupportMultipleWindows(true)
-        if (activity.isTv) web.setInitialScale(TV_SCALE)
+        if (Device.tv) web.setInitialScale(TV_SCALE)
+
+        // On a phone, Cinejoy's Home gets the same back arrow to the picker as on iPhone
+        // (ciname/Injected/back-button.js, next to the site's logo).
+        if (!Device.tv && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            activity.asset("cinejoy/back-button.js")?.let {
+                WebViewCompat.addDocumentStartJavaScript(web, it, setOf("https://cinejoy.pk", "https://cinejoy.to"))
+            }
+            web.addJavascriptInterface(ExitBridge(), Device.bridge)
+        }
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
@@ -105,7 +117,7 @@ class CinejoyPane(activity: MainActivity) : Pane(activity, "#95FF50") {
     }
 
     override fun onKey(event: KeyEvent): Boolean {
-        if (customView == null) return super.onKey(event)
+        if (!Device.tv || customView == null) return super.onKey(event)
         if (Pane.keyName(event.keyCode) == null) return false
         if (event.action == KeyEvent.ACTION_DOWN) playerKey(event.keyCode)
         return true
@@ -130,6 +142,13 @@ class CinejoyPane(activity: MainActivity) : Pane(activity, "#95FF50") {
             KeyEvent.KEYCODE_SPACE -> js("TvNav.playPause()")
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> js("TvNav.seek($SEEK_SECONDS)")
             KeyEvent.KEYCODE_MEDIA_REWIND -> js("TvNav.seek(-$SEEK_SECONDS)")
+        }
+    }
+
+    private inner class ExitBridge {
+        @JavascriptInterface
+        fun exit() {
+            activity.runOnUiThread { activity.closePane() }
         }
     }
 
