@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         pane.web.scaleY = 0.96f
         pane.web.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260).withEndAction {
             // the picker's poster walls stop animating behind an app, so the GPU is all the app's
-            if (current === pane) { picker.web.visibility = View.INVISIBLE; picker.pause() }
+            if (current === pane) { picker.web.visibility = View.INVISIBLE; if (picker.loaded) picker.pause() }
         }.start()
         pane.web.requestFocus()
     }

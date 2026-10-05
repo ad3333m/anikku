@@ -23,9 +23,16 @@ class PickerPane(activity: MainActivity) : Pane(activity, "#FF9A2E") {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = request.url.host != HOST
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) { navReady = false }
-            override fun onPageFinished(view: WebView, url: String?) = injectNavigator()
+            override fun onPageFinished(view: WebView, url: String?) {
+                loaded = true
+                injectNavigator()
+            }
         }
     }
+
+    /** Set once the page has drawn: pausing it before then can leave it blank when it comes back. */
+    var loaded = false
+        private set
 
     fun load() = web.loadUrl("https://$HOST/")
 
