@@ -1,6 +1,7 @@
 <!-- Ciname website passcode screen. site/build.py puts this at the top of every page and fills in
-     {{HASH}} (SHA-256 of "ciname:" + the passcode) and {{LOGO}}. A correct code is remembered on that
-     device. GitHub Pages is public hosting, so this keeps casual visitors out; it is not encryption. -->
+     {{HASH}} (SHA-256 of "ciname:" + the passcode) and {{LOGO}}. A correct code only lasts while you move
+     around the site in that tab: a refresh, a new tab or a new visit asks again. The site is public
+     hosting, so this keeps casual visitors out; it is not encryption. -->
 <style id="ciname-gate-style">
   html.ciname-locked, html.ciname-locked body { overflow: hidden !important; }
   html.ciname-locked body > :not(#ciname-gate) { visibility: hidden !important; }
@@ -33,8 +34,14 @@
 <script>
   (() => {
     const HASH = '{{HASH}}', KEY = 'ciname.gate', LEN = 6;
+    // unlocked for this tab only (sessionStorage), and a refresh always locks it again
     let ok = false;
-    try { ok = localStorage.getItem(KEY) === HASH; } catch (e) { /* storage blocked: ask every time */ }
+    try {
+      localStorage.removeItem(KEY);                       // from when an unlock was remembered for good
+      const nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+      if (nav && nav.type === 'reload') sessionStorage.removeItem(KEY);
+      ok = sessionStorage.getItem(KEY) === HASH;
+    } catch (e) { /* storage blocked: ask every time */ }
     if (ok) return;
     document.documentElement.classList.add('ciname-locked');
 
@@ -57,7 +64,7 @@
       const check = async () => {
         busy = true;
         if (await sha('ciname:' + code) === HASH) {
-          try { localStorage.setItem(KEY, HASH); } catch (e) { /* this visit only */ }
+          try { sessionStorage.setItem(KEY, HASH); } catch (e) { /* this page only */ }
           gate.classList.add('open');
           document.documentElement.classList.remove('ciname-locked');
           setTimeout(() => gate.remove(), 400);
