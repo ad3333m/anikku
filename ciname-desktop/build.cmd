@@ -16,6 +16,7 @@ if not exist web mkdir web
 python ..\ios\bundle_web.py web || (echo Bundling Anikku failed. & exit /b 1)
 python ..\ciname\tools\inline_launcher.py web || (echo Bundling the picker failed. & exit /b 1)
 copy /y ..\ciname\Injected\back-button.js web\back-button.js >nul
+copy /y ..\ciname\Injected\app-feel.js web\app-feel.js >nul
 
 if not exist dist mkdir dist
 "%CSC%" /nologo /target:winexe /platform:x64 /optimize+ /warn:4 /codepage:65001 ^
@@ -36,6 +37,7 @@ if not exist dist mkdir dist
   /resource:web\index.html,index.html ^
   /resource:web\skin.js,skin.js ^
   /resource:web\back-button.js,back-button.js ^
+  /resource:web\app-feel.js,app-feel.js ^
   src\Program.cs
 
 if errorlevel 1 (

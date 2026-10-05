@@ -98,7 +98,8 @@ export async function render(view, token, id, epStr) {
       load();
     } else {
       veil.hidden = false;
-      veil.innerHTML = `${icon('info', 26)}<span>${esc(why)}. Try Dub/Sub or another episode.</span>`;
+      veil.innerHTML = `${icon('info', 26)}<span>${esc(why)} on any server. Try Dub/Sub or another episode &ndash; and if no
+        video ever loads on this device, turn off any VPN, DNS filter or ad-blocking profile, or switch between Wi-Fi and mobile data.</span>`;
     }
   };
   frame.addEventListener('load', () => setTimeout(() => { if (!skinned) veil.hidden = true; }, 600));

@@ -57,6 +57,11 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         webView.scrollView.backgroundColor = .black
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         if #available(iOS 16.4, *) { webView.isInspectable = true }
+        // feels like an app: no pinch zoom, no long-press link previews (text selection is off in the pages' CSS)
+        webView.allowsLinkPreview = false
+        webView.scrollView.minimumZoomScale = 1
+        webView.scrollView.maximumZoomScale = 1
+        webView.scrollView.bouncesZoom = false
         view.addSubview(webView)
 
         AdBlocker.install(into: config.userContentController) { [weak self] in self?.loadStart() }

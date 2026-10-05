@@ -12,7 +12,7 @@ android {
         // 24 covers every Google TV in the wild; the Bravia 8 is far past it.
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
+        versionCode = 6
     }
 
     buildFeatures { buildConfig = true }
@@ -23,14 +23,14 @@ android {
         create("tv") {
             dimension = "device"
             applicationId = "com.ad3333m.ciname"
-            versionName = "1.0.4"
+            versionName = "1.0.5"
             buildConfigField("boolean", "TV", "true")
             manifestPlaceholders["orientation"] = "landscape"
         }
         create("phone") {
             dimension = "device"
             applicationId = "com.ad3333m.ciname.android"
-            versionName = "1.0.1"
+            versionName = "1.0.2"
             buildConfigField("boolean", "TV", "false")
             manifestPlaceholders["orientation"] = "unspecified"
         }

@@ -123,7 +123,7 @@
       .jw-controls, .jw-display, .jw-logo, .jw-dock, .jw-title, .jw-nextup-container, .jw-rightclick, .jw-tooltip,
       .jw-controlbar, .jw-display-container, .jw-preview, .jw-icon-display, .botright, .zbtn, .afs_ads, .ad-placement,
       .jw-flag-floating .jw-float-bar { display: none !important; }
-      html, body { background: #000 !important; overflow: hidden !important; }
+      html, body { background: #000 !important; overflow: hidden !important; -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
       .jw-captions { transition: bottom .25s ease, transform .25s ease !important; }
       .anx-on .jw-captions { transform: translateY(-74px) !important; }
       @media (max-height: 330px) { .anx-on .jw-captions { transform: translateY(-52px) !important; } }
@@ -488,6 +488,19 @@
     jw.on('meta', drawMarks);
     jw.on('mute', syncVol);
     jw.on('volume', syncVol);
+
+    // ---- a video that never starts (the server or its video host can't be reached from this network):
+    // after 15s of loading with nothing played, report an error so the page moves on to the next server
+    // instead of spinning forever
+    let stuckSince = 0, gaveUp = false;
+    setInterval(() => {
+      if (gaveUp) return;
+      const st = jw.getState();
+      if ((st === 'buffering' || st === 'loading' || st === 'idle') && pos() < 0.5) {
+        if (!stuckSince) stuckSince = Date.now();
+        else if (Date.now() - stuckSince > 15000) { gaveUp = true; post('error', { reason: "The video didn't start" }); }
+      } else stuckSince = 0;
+    }, 1000);
 
     let startDone = false;
     let lastReport = 0;

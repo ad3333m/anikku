@@ -37,6 +37,13 @@ class CinejoyPane(activity: MainActivity) : Pane(activity, "#95FF50") {
         web.settings.setSupportMultipleWindows(true)
         if (Device.tv) web.setInitialScale(TV_SCALE)
 
+        // no text selection, copy menu or zoom on the site (ciname/Injected/app-feel.js)
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            activity.asset("cinejoy/app-feel.js")?.let {
+                WebViewCompat.addDocumentStartJavaScript(web, it, setOf("https://cinejoy.pk", "https://cinejoy.to"))
+            }
+        }
+
         // On a phone, Cinejoy's Home gets the same back arrow to the picker as on iPhone
         // (ciname/Injected/back-button.js, next to the site's logo).
         if (!Device.tv && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {

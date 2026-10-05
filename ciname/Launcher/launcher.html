@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="color-scheme" content="dark">
   <title>Ciname</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +27,7 @@
       font-family: var(--text);
       display: flex; flex-direction: column;
       padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l);
-      -webkit-user-select: none; user-select: none;
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
     }
 
     /* drifting lime and orange light behind everything */
@@ -238,6 +238,10 @@
           setTimeout(() => send(card.dataset.open), 240);
         });
       });
+      // no pinch zoom (iOS Safari ignores user-scalable=no), no copy menu
+      document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+      document.addEventListener('contextmenu', e => e.preventDefault());
+
       // the app calls this when the picker is shown again
       window.cinameReset = () => {
         busy = false;

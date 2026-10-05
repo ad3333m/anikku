@@ -27,8 +27,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyTitle("Ciname")]
 [assembly: AssemblyProduct("Ciname")]
 [assembly: AssemblyDescription("Anikku and Cinejoy in one app")]
-[assembly: AssemblyVersion("1.0.3.0")]
-[assembly: AssemblyFileVersion("1.0.3.0")]
+[assembly: AssemblyVersion("1.0.4.0")]
+[assembly: AssemblyFileVersion("1.0.4.0")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8")]
 
 namespace CinameApp
@@ -422,7 +422,11 @@ namespace CinameApp
             core.Settings.UserAgent = core.Settings.UserAgent + " CinameDesktop/1.0";
             core.Settings.IsStatusBarEnabled = false;
             core.Settings.AreDevToolsEnabled = false;
-            core.Settings.IsZoomControlEnabled = true;
+            // feels like an app: no Ctrl+/pinch zoom and no right-click copy/paste menu (selection is off in the CSS)
+            core.Settings.IsZoomControlEnabled = false;
+            core.Settings.AreDefaultContextMenusEnabled = false;
+            try { core.Settings.IsPinchZoomEnabled = false; }
+            catch { }
             try
             {
                 core.Settings.IsGeneralAutofillEnabled = false;
@@ -524,6 +528,8 @@ namespace CinameApp
             // Ciname's back arrow in the site's own top bar, on its home page (ciname/Injected/back-button.js)
             string back = Embedded.ReadText("back-button.js");
             if (back != null) await core.AddScriptToExecuteOnDocumentCreatedAsync(back);
+            string feel = Embedded.ReadText("app-feel.js");          // no selection or copy menu on the site
+            if (feel != null) await core.AddScriptToExecuteOnDocumentCreatedAsync(feel);
 
             core.NavigationStarting += delegate(object s, CoreWebView2NavigationStartingEventArgs e)
             {

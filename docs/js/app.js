@@ -71,6 +71,10 @@ document.getElementById('back').addEventListener('click', () => {
 
 window.addEventListener('hashchange', route);
 window.addEventListener('scroll', onScroll, { passive: true });
+// no pinch zoom (iOS Safari ignores user-scalable=no), and no copying page text
+document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+document.addEventListener('copy', e => { if (!/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) e.preventDefault(); });
+document.addEventListener('contextmenu', e => { if (!/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) e.preventDefault(); });
 document.addEventListener('keydown', e => {
   if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); location.hash = '#/search'; }
 });

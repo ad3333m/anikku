@@ -38,6 +38,9 @@ final class RootViewController: UIViewController {
         launcher.scrollView.isScrollEnabled = false
         launcher.scrollView.contentInsetAdjustmentBehavior = .never
         launcher.navigationDelegate = self
+        launcher.allowsLinkPreview = false
+        launcher.scrollView.minimumZoomScale = 1
+        launcher.scrollView.maximumZoomScale = 1
         view.addSubview(launcher)
 
         dim.frame = view.bounds

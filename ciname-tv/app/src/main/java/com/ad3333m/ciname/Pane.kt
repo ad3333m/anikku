@@ -42,9 +42,13 @@ abstract class Pane(protected val activity: MainActivity, private val accent: St
             loadWithOverviewMode = true
             builtInZoomControls = false
             displayZoomControls = false
+            setSupportZoom(false)
             // the pages switch to their TV layout when they see this
             userAgentString = userAgentString + Device.agent
         }
+        // feels like an app: a long press doesn't select text or open a copy/paste menu
+        web.isLongClickable = false
+        web.setOnLongClickListener { true }
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
     }

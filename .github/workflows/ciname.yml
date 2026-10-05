@@ -19,6 +19,7 @@ jobs:
           path: dist/Ciname.ipa
 
   simulator:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: macos-15
     continue-on-error: true
     steps:

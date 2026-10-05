@@ -10,6 +10,7 @@ command -v xcodegen >/dev/null || brew install xcodegen
 python3 ../ios/bundle_web.py Web
 python3 tools/inline_launcher.py Web
 cp Injected/back-button.js Web/   # Cinejoy's back button to the picker
+cp Injected/app-feel.js Web/      # no selection, copy menu or zoom on Cinejoy
 xcodegen generate --quiet
 
 if [ "$MODE" = simulator ]; then

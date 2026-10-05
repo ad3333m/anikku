@@ -34,7 +34,7 @@ jobs:
           python3 ios/bundle_web.py ciname-tv/app/src/main/assets/anikku
           python3 ciname/tools/inline_launcher.py ciname-tv/app/src/main/assets/picker
           mkdir -p ciname-tv/app/src/main/assets/cinejoy
-          cp ciname/Injected/back-button.js ciname-tv/app/src/main/assets/cinejoy/
+          cp ciname/Injected/back-button.js ciname/Injected/app-feel.js ciname-tv/app/src/main/assets/cinejoy/
           ls -la ciname-tv/app/src/main/assets/*
 
       - name: Unit tests
@@ -68,6 +68,7 @@ jobs:
           if-no-files-found: error
 
   tv-emulator:
+    if: github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -99,6 +100,7 @@ jobs:
           path: tv-shots/
 
   phone-emulator:
+    if: github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
     continue-on-error: true

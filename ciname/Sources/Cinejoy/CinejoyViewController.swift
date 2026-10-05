@@ -89,6 +89,12 @@ final class CinejoyViewController: UIViewController {
         config.userContentController.addUserScript(Self.mediaWatcherScript())
         config.userContentController.add(WeakMessageHandler(self), name: Const.mediaHandler)
 
+        if let url = Bundle.main.url(forResource: "app-feel", withExtension: "js"),
+           let js = try? String(contentsOf: url, encoding: .utf8) {
+            config.userContentController.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentEnd,
+                                                                    forMainFrameOnly: true))
+        }
+
         // Ciname's back button, placed in the site's own top bar (ciname/Injected/back-button.js)
         if onExit != nil, let url = Bundle.main.url(forResource: "back-button", withExtension: "js"),
            let js = try? String(contentsOf: url, encoding: .utf8) {
@@ -108,7 +114,12 @@ final class CinejoyViewController: UIViewController {
         // An edge swipe goes back a page; with no page left to go back to, Ciname
         // takes the same swipe and returns to the picker (as does the back button on Home).
         webView.allowsBackForwardNavigationGestures = true
-        webView.allowsLinkPreview = true
+        // feels like an app: no zoom, no long-press previews, and ciname/Injected/app-feel.js turns off
+        // text selection and the copy menu on the site
+        webView.allowsLinkPreview = false
+        webView.scrollView.minimumZoomScale = 1
+        webView.scrollView.maximumZoomScale = 1
+        webView.scrollView.bouncesZoom = false
 
         refresh.tintColor = Palette.accent
         refresh.addTarget(self, action: #selector(pulled), for: .valueChanged)
